@@ -1,0 +1,68 @@
+-- Referências
+local screenGui = script.Parent
+local openButton = screenGui.OpenButton
+local hubFrame = screenGui.HubFrame
+
+local espButton = hubFrame.ESPButton
+local noclipButton = hubFrame.NoclipButton
+local jumpButton = hubFrame.JumpButton
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local runService = game:GetService("RunService")
+local noclipEnabled = false
+local espEnabled = false
+local infiniteJumpEnabled = false
+
+-- Função para abrir/fechar o hub
+openButton.MouseButton1Click:Connect(function()
+    hubFrame.Visible = not hubFrame.Visible -- Alterna entre visível e invisível
+end)
+
+-- Função para ESP
+local function toggleESP()
+    espEnabled = not espEnabled
+    for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+        if otherPlayer ~= player then
+            local character = otherPlayer.Character or otherPlayer.CharacterAdded:Wait()
+            if espEnabled and not character:FindFirstChild("Highlight") then
+                local highlight = Instance.new("Highlight")
+                highlight.Parent = character
+                highlight.Adornee = character
+                highlight.FillTransparency = 0.5
+                highlight.OutlineColor = Color3.new(1, 0, 0)
+            elseif not espEnabled and character:FindFirstChild("Highlight") then
+                character:FindFirstChild("Highlight"):Destroy()
+            end
+        end
+    end
+end
+
+-- Função para Noclip
+local function toggleNoclip()
+    noclipEnabled = not noclipEnabled
+    runService.Stepped:Connect(function()
+        if noclipEnabled then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end)
+end
+
+-- Função para Pulos Infinitos
+local function toggleInfiniteJump()
+    infiniteJumpEnabled = not infiniteJumpEnabled
+    player:GetMouse().KeyDown:Connect(function(key)
+        if key == " " and infiniteJumpEnabled then
+            character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end)
+end
+
+-- Conectando os botões às funções
+espButton.MouseButton1Click:Connect(toggleESP)
+noclipButton.MouseButton1Click:Connect(toggleNoclip)
+jumpButton.MouseButton1Click:Connect(toggleInfiniteJump)
